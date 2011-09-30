@@ -34,8 +34,6 @@
 #include <jansson.h>
 #include "server.h"
 
-#define EASY_TARGET "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000"
-
 static char *read_commented_file(const char *fn)
 {
 	char linebuf[512], *line;
@@ -301,6 +299,25 @@ static void parse_database(const json_t *db_obj)
 		srv.db_stmt_sharelog = strdup(db_st_sharelog);
 }
 
+static void set_easy_target_bits(unsigned int bits)
+{
+	unsigned int i;
+	char *tstr;
+	if (bits == 0)
+		return;
+	if (bits > 255) {
+		applog(LOG_ERR, "error: invalid easy target bits specified");
+		exit(1);
+	}
+	for(i = 0; i < 32 - (bits / 8); i++)
+		srv.easy_target_bin[i] = 0xff;
+	if(bits % 8)
+		srv.easy_target_bin[i-1] = 0xff >> (bits % 8);
+	tstr = bin2hex(srv.easy_target_bin, 32);
+	srv.easy_target = json_string(tstr);
+	free(tstr);
+}
+
 void read_config(void)
 {
 	json_t *jcfg, *cred_expire, *tmp_json;
@@ -390,8 +407,9 @@ void read_config(void)
 		exit(1);
 	}
 
-	if (json_is_true(json_object_get(jcfg, "rpc.target.rewrite")))
-		srv.easy_target = json_string(EASY_TARGET);
+	tmp_json = json_object_get(jcfg, "rpc.target.bits");
+	if (json_is_integer(tmp_json))
+		set_easy_target_bits(json_integer_value(tmp_json));
 
 	tmp_json = json_object_get(jcfg, "work.expire");
 	if (json_is_integer(tmp_json))

@@ -84,8 +84,8 @@
 	"rpc.user" : "myusername",
 	"rpc.pass" : "mypassword",
 
-	# rewrite returned 'target' to difficulty-1?
-	"rpc.target.rewrite" : true,
+	# rewrite returned 'target' to given number of zero bits, 32 equals difficulty-1
+	"rpc.target.bits" : 32,
 
 	# how long before work expires?
 	"work.expire" : 120,

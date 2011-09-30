@@ -232,7 +232,8 @@ static json_t *get_work(const char *auth_user)
 {
 	char s[80];
 	unsigned char data[128];
-	const char *data_str;
+	unsigned char target[32];
+	const char *data_str, *target_str;
 	json_t *val, *result;
 
 	sprintf(s, "{\"method\": \"getwork\", \"params\": [], \"id\":%u}\r\n",
@@ -257,6 +258,14 @@ static json_t *get_work(const char *auth_user)
 		/* store two most recently seen prevhash (last, and current) */
 		memcpy(srv.last_prevhash, srv.cur_prevhash, sizeof(srv.last_prevhash));
 		memcpy(srv.cur_prevhash, data + 4, sizeof(srv.cur_prevhash));
+
+		target_str = json_string_value(json_object_get(result, "target"));
+		if (!target_str ||
+		    !hex2bin(target, target_str, sizeof(target))) {
+			json_decref(val);
+			return NULL;
+		}
+		memcpy(srv.cur_target, target, sizeof(srv.cur_target));
 	}
 
 	/* log work unit as having been sent to associated worker */
@@ -269,11 +278,26 @@ static json_t *get_work(const char *auth_user)
 	return val;
 }
 
+static int hash_greater_target(const unsigned char *hash, const unsigned char *target)
+{
+	uint32_t *hash32 = (uint32_t *) hash;
+	uint32_t *target32 = (uint32_t *) target;
+	int i;
+	/* this is NOT endian-clean */
+	for (i = 7; i >= 0; i--) {
+		if (hash32[i] > target32[i])
+			return 1;
+		//shortcut
+		if (hash32[i] < target32[i])
+			return 0;
+	}
+	return 0;
+}
+
 static int check_hash(const char *remote_host, const char *auth_user,
 		      const char *data_str, const char **reason_out)
 {
 	unsigned char hash[SHA256_DIGEST_LENGTH], hash1[SHA256_DIGEST_LENGTH];
-	uint32_t *hash32 = (uint32_t *) hash;
 	unsigned char data[128];
 	uint32_t *data32 = (uint32_t *) data;
 	bool rc, better_hash = false;
@@ -298,12 +322,14 @@ static int check_hash(const char *remote_host, const char *auth_user,
 	SHA256(data, 80, hash1);
 	SHA256(hash1, SHA256_DIGEST_LENGTH, hash);
 
-	if (hash32[7] != 0) {
-		*reason_out = "H-not-zero";
-		return 0;		/* work is invalid */
+	if (srv.easy_target) {
+		if (hash_greater_target(hash, srv.easy_target_bin)) {
+			*reason_out = "target-miss";
+			return 0;		/* work is invalid */
+		}
+		if(! hash_greater_target(hash, srv.cur_target))
+			better_hash = true;
 	}
-	if (hash[27] == 0)
-		better_hash = true;
 
 	if (hist_lookup(srv.hist, hash)) {
 		*reason_out = "duplicate";

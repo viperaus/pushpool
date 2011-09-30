@@ -159,6 +159,7 @@ struct server {
 	char			*rpc_url;
 	char			*rpc_userpass;
 	json_t			*easy_target;
+	unsigned char		easy_target_bin[32];
 
 	enum server_db_eng	db_eng;
 	struct server_db_ops	*db_ops;
@@ -176,6 +177,7 @@ struct server {
 	struct hist		*hist;
 	unsigned char		last_prevhash[32];
 	unsigned char		cur_prevhash[32];
+	unsigned char		cur_target[32];
 
 	struct htab		*workers;
 	struct elist_head	work_log;
