@@ -323,8 +323,8 @@ class CBlock(object):
 	def is_valid(self):
 		self.calc_sha256()
 		target = uint256_from_compact(self.nBits)
-		if self.sha256 > target:
-			return False
+		#if self.sha256 > target:
+		#	return False
 		hashes = []
 		for tx in self.vtx:
 			if not tx.is_valid():
@@ -353,7 +353,7 @@ class msg_version(object):
 		self.addrFrom = CAddress()
 		self.nNonce = random.getrandbits(64)
 		self.strSubVer = MY_SUBVERSION
-		self.nStartingHeight = -1
+		self.nStartingHeight = 0
 	def deserialize(self, f):
 		self.nVersion = struct.unpack("<i", f.read(4))[0]
 		if self.nVersion == 10300:
@@ -586,7 +586,7 @@ class NodeConn(asyncore.dispatcher):
 		while True:
 			if len(self.recvbuf) < 4:
 				return
-			if self.recvbuf[:4] != "\xf9\xbe\xb4\xd9":
+			if self.recvbuf[:4] != "\xf9\xda\xb4\xd9":
 				raise ValueError("got garbage %s" % repr(self.recvbuf))
 			if self.ver_recv < 209:
 				if len(self.recvbuf) < 4 + 12 + 4:
@@ -625,7 +625,7 @@ class NodeConn(asyncore.dispatcher):
 		print "send %s" % repr(message)
 		command = message.command
 		data = message.serialize()
-		tmsg = "\xf9\xbe\xb4\xd9"
+		tmsg = "\xf9\xda\xb4\xd9"
 		tmsg += command
 		tmsg += "\x00" * (12 - len(command))
 		tmsg += struct.pack("<I", len(data))
