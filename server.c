@@ -1176,8 +1176,8 @@ static int main_loop(void)
 			srv.share_fd = log_reopen(srv.share_fd, srv.share_log);
 		}
 		if (srv.initiate_lp_flush) {
-			srv.initiate_lp_flush = false;
 			flush_lp_waiters();
+			srv.initiate_lp_flush = false;
 		}
 	}
 
