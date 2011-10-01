@@ -270,6 +270,7 @@ static json_t *get_work(const char *auth_user)
 		if (debugging > 0)
 			applog(LOG_INFO, "new block, target %s", target_str);
 		srv.initiate_lp_flush = true;
+		event_loopbreak();
 	}
 
 	/* log work unit as having been sent to associated worker */
@@ -451,7 +452,11 @@ static bool submit_work(const char *remote_host, const char *auth_user,
 	json_decref(val);
 
 	if (!*reason)
+	{
 		applog(LOG_INFO, "PROOF-OF-WORK found");
+		fake_get_work();
+		event_loopbreak();
+	}
 
 	/* if pool server mode, return success even if result==false */
 	if (srv.easy_target)
