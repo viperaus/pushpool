@@ -267,6 +267,9 @@ static json_t *get_work(const char *auth_user)
 			return NULL;
 		}
 		memcpy(srv.cur_target, target, sizeof(srv.cur_target));
+		if (debugging > 0)
+			applog(LOG_INFO, "new block, target %s", target_str);
+		srv.initiate_lp_flush = true;
 	}
 
 	/* log work unit as having been sent to associated worker */

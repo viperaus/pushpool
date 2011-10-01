@@ -315,6 +315,8 @@ static void set_easy_target_bits(unsigned int bits)
 		srv.easy_target_bin[i-1] = 0xff >> (bits % 8);
 	tstr = bin2hex(srv.easy_target_bin, 32);
 	srv.easy_target = json_string(tstr);
+	if (debugging > 0)
+		applog(LOG_INFO, "set easy target %s", tstr);
 	free(tstr);
 }
 
