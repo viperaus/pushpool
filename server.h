@@ -206,6 +206,7 @@ extern void read_config(void);
 /* msg.c */
 extern char *pwdb_lookup(const char *user);
 extern void worker_log_expire(time_t expire_time);
+extern void fake_get_work(void);
 extern bool cli_op_login(struct client *cli, const json_t *obj,
 			 unsigned int msgsz);
 extern bool cli_op_config(struct client *cli, const json_t *obj);

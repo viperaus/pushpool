@@ -81,6 +81,7 @@ static const struct argp argp = { options, parse_opt, NULL, doc };
 static bool server_running = true;
 static bool dump_stats;
 static bool reopen_logs;
+static bool trigger_lp_flush;
 bool use_syslog = true;
 static bool strict_free = false;
 int debugging = 0;
@@ -1128,7 +1129,7 @@ static void usr1_signal(int signo)
 	if (debugging)
 		applog(LOG_INFO, "USR1 signal received, flushing LP waiters");
 
-	srv.initiate_lp_flush = true;
+	trigger_lp_flush = true;
 	event_loopbreak();
 }
 
@@ -1174,6 +1175,10 @@ static int main_loop(void)
 			reopen_logs = false;
 			srv.req_fd = log_reopen(srv.req_fd, srv.req_log);
 			srv.share_fd = log_reopen(srv.share_fd, srv.share_log);
+		}
+		if (trigger_lp_flush) {
+			trigger_lp_flush = false;
+			fake_get_work();
 		}
 		if (srv.initiate_lp_flush) {
 			flush_lp_waiters();
