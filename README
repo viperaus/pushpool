@@ -1,4 +1,4 @@
-bitcoin push-mining pool server.
+litecoin push-mining pool server.
 
 Dependencies:
 	libevent		Event-driven async I/O
@@ -9,3 +9,26 @@ Dependencies:
 	OpenSSL's libcrypto	sha256
 	libcurl			HTTP client
 
+
+Installation instructions:
+
+git clone git://github.com/viperaus/pushpool.git
+cd pushpool
+./autogen.sh
+./configure
+make
+make install
+cp example-cfg.json server.json
+**edit server.json with your favorite editor**
+nano server.json
+**configure required settings - primarily litecoin rpc details and db details**
+
+Running:
+
+Debug mode to screen {
+  pushpoold -D 2 -E -F
+}
+
+Standard {
+  pushpoold
+}
