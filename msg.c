@@ -67,7 +67,7 @@ char *pwdb_lookup(const char *user)
 
 	if (srv.mc) {
 		snprintf(cred_key, sizeof(cred_key),
-			 "/pushpoold/cred_cache/%s", user);
+			 "/pushpoold/cred_cache/%s%s", srv.rpc_url,user);
 
 		pass = memcached_get(srv.mc, cred_key, strlen(cred_key),
 				     &out_len, &out_flags, &rc);
